@@ -1,165 +1,187 @@
 #pragma comment(lib, "Ws2_32.lib") // 또는 -lws2_32 컴파일러 옵션 추가
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // Visual Studio IDE 옵션 추가
 
 #include <stdio.h>
 #include <winsock2.h>
 
+#define CLIENT_MAX 10
 #define BUFFER_SIZE 1024
 
-int main()
+int main(int argc, char* argv[])
 {
-    WSADATA wsa;
-    SOCKET server_socket, client_socket;
-    struct sockaddr_in server_addr, client_addr;
-    int select, port, addr_len, bytes_received;
-    char buffer[BUFFER_SIZE];
+	WSADATA wsa;
+	SOCKET server_socket, client_socket[CLIENT_MAX], new_socket;
+	struct sockaddr_in server_addr, client_addr;
+	unsigned long mode = 1;
+	int i, select, port, client_len, bytes_received;
+	char client_status[CLIENT_MAX], buffer[BUFFER_SIZE];
 
-    while (1)
-    {
-        printf("1. 서버 생성 :: 2.서버 접속 :: 0.종료 :: ");
-        fscanf(stdin, "%d", &select);
-        getchar();
+	if (argc == 1)
+	{
+		system("start winsock.exe 1");
+		system("start winsock.exe 2");
+	}
 
-        switch (select)
-        {
-        case 0:
-            return 0;
-        case 1:
-            printf("생성 포트 번호 : ");
-            break;
-        case 2:
-            printf("접속 포트 번호 : ");
-            break;
-        default:
-            printf("잘못 입력 하였습니다.\n");
-            continue;
-        }
-        fscanf(stdin, "%d", &port);
-        getchar();
+	while (1)
+	{
+		printf("1. 서버 생성 :: 2.서버 접속 :: 0.종료 :: ");
+		fscanf(stdin, "%d", &select);
+		getchar();
 
-        // Winsock 초기화
-        if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-        {
-            printf("Winsock 초기화 실패\n");
-            break;
-        }
+		switch (select)
+		{
+		case 0:
+			return 0;
+		case 1:
+			printf("생성 포트 번호 : ");
+			break;
+		case 2:
+			printf("접속 포트 번호 : ");
+			break;
+		default:
+			printf("잘못 입력 하였습니다.\n");
+			continue;
+		}
+		fscanf(stdin, "%d", &port);
+		getchar();
 
-        // 서버 주소 설정
-        server_addr.sin_family = AF_INET;
-        server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-        server_addr.sin_port = htons(port);
+		// Winsock 초기화
+		if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		{
+			printf("Winsock 초기화 실패\n");
+			break;
+		}
 
-        switch (select)
-        {
-            ////////////////////////////////////////////////// 서버 생성 시작 부분 //////////////////////////////////////////////////
-        case 1:
-            // 서버 소켓 생성
-            if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-            {
-                printf("서버 소켓 생성 실패\n");
-                break;
-            }
+		// 서버 주소 설정
+		server_addr.sin_family = AF_INET;
+		server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+		server_addr.sin_port = htons(port);
 
-            // 소켓과 주소 바인딩
-            if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
-            {
-                printf("바인딩 실패\n");
-                break;
-            }
+		switch (select)
+		{
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+		case 1:
+			// 서버 소켓 생성
+			if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+			{
+				printf("서버 소켓 생성 실패\n");
+				break;
+			}
 
-            // 클라이언트의 연결 요청 대기
-            if (listen(server_socket, 1) == SOCKET_ERROR)
-            {
-                printf("리슨 실패\n");
-                break;
-            }
+			// 다중 클라이언트 처리 설정(mode = 1 // accept 블로킹 해제)
+			ioctlsocket(server_socket, FIONBIO, &mode);
 
-            printf("서버 활성화 :: 클라이언트 접속 대기 중\n");
+			// 소켓과 주소 바인딩
+			if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
+			{
+				printf("바인딩 실패\n");
+				break;
+			}
 
-            // 클라이언트의 연결 요청을 수락
-            // 클라이언트로부터 데이터 수신 및 출력
-            int status = 0;
-            while (1)
-            {
-                if (status == 0)
-                {
-                    // 클라이언트의 연결 요청을 수락
-                    addr_len = sizeof(client_addr);
-                    client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addr_len);
-                    if (client_socket == INVALID_SOCKET)
-                    {
-                        printf("클라이언트 연결 실패\n");
-                        break;
-                    }
-                    else
-                        printf("%s:%d 클라이언트 %d 연결\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket);
+			// 클라이언트의 연결 요청 대기
+			if (listen(server_socket, 1) == SOCKET_ERROR)
+			{
+				printf("리슨 실패\n");
+				break;
+			}
 
-                    status = 1;
-                }
+			client_len = sizeof(client_addr);
 
-                bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0);
-                if (bytes_received > 0)
-                {
-                    buffer[bytes_received - 1] = '\0';
-                    printf("클라이언트 %d : %s(%d)\n", client_socket, buffer, bytes_received - 1);
-                }
-                else
-                {
-                    if (bytes_received == 0)
-                        printf("클라이언트 %d 정상 연결 해제\n", client_socket);
-                    else
-                        printf("클라이언트 %d 강제 연결 해제\n", client_socket);
+			printf("서버 활성화 :: 클라이언트 접속 대기 중\n");
 
-                    status = 0;
-                }
-            }
-            break;
-            ////////////////////////////////////////////////// 서버 생성 끝 부분 //////////////////////////////////////////////////
-            ////////////////////////////////////////////// 클라이언트 생성 시작 부분 ///////////////////////////////////////////////
-        case 2:
-            // 클라이언트 소켓 생성
-            if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-            {
-                printf("클라이언트 소켓 생성 실패\n");
-                break;
-            }
+			while (1)
+			{
+				// 클라이언트의 연결 요청을 수락
+				new_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_len);
 
-            // 서버에 연결
-            if (connect(client_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-            {
-                printf("서버 접속 실패\n");
-                break;
-            }
+				for (i = 0; i < CLIENT_MAX; i++)
+				{
+					if (new_socket != INVALID_SOCKET && client_status[i] != 1)
+					{
+						client_socket[i] = new_socket;
+						client_status[i] = 1;
+						printf("%s:%d 클라이언트 %lld 연결\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket[i]);
+						break;
+					}
+				}
 
-            printf("%s:%d 서버 접속 완료(종료 : 0)\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+				for (i = 0; i < CLIENT_MAX; i++)
+				{
+					if (client_status[i] == 1)
+					{
+						// 클라이언트로부터 데이터 수신 및 출력
+						bytes_received = recv(client_socket[i], buffer, BUFFER_SIZE, 0);
+						if (bytes_received > 0)
+						{
+							buffer[bytes_received - 1] = '\0';
+							printf("클라이언트 %lld : %s\n", client_socket[i], buffer);
+						}
+						if (bytes_received == 0)
+						{
+							closesocket(client_socket[i]);
+							client_status[i] = 0;
+							printf("%s:%d 클라이언트 %lld 연결 해제\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket[i]);
+						}
+					}
+				}
+			}
+			break;
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+		case 2:
+			// 클라이언트 소켓 생성
+			if ((client_socket[0] = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+			{
+				printf("클라이언트 소켓 생성 실패\n");
+				break;
+			}
 
-            printf("발신가능");
-            while (1)
-            {
-                printf(" :: ");
-                fgets(buffer, sizeof(buffer), stdin);
+			// 서버에 연결
+			if (connect(client_socket[0], (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
+			{
+				printf("서버 접속 실패\n");
+				break;
+			}
 
-                if (strstr(buffer, "0") != 0)
-                    break;
+			printf("%s:%d 서버 접속 완료(종료 : 0)\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
 
-                int bytes_sent = send(client_socket, buffer, strlen(buffer), 0);
-                if (bytes_sent == SOCKET_ERROR)
-                    printf("발신불가");
-                else
-                    printf("발신가능");
-            }
-            break;
-            ////////////////////////////////////////////// 클라이언트 생성 끝 부분 //////////////////////////////////////////////////
-        }
+			while (1)
+			{
+				printf(":: ");
+				fgets(buffer, sizeof(buffer), stdin);
 
-        // 소켓 해제
-        closesocket(client_socket);
-        closesocket(server_socket);
+				// 클라이언트 종료
+				if (strstr(buffer, "0") != 0)
+					break;
 
-        // Winsock 정리
-        WSACleanup();
+				// 서버로 데이터 송신
+				int bytes_sent = send(client_socket[0], buffer, strlen(buffer), 0);
+				if (bytes_sent == SOCKET_ERROR)
+				{
+					printf("서버와의 접속이 끊어졌습니다.\n");
+					break;
+				}
+			}
+			break;
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+		}
 
-        continue;
-    }
+		// 소켓 해제
+		if (select == 1)
+			closesocket(server_socket);
+		else
+			closesocket(client_socket[0]);
 
-    return 0;
+		// Winsock 정리
+		WSACleanup();
+
+		continue;
+	}
+
+	return 0;
 }
