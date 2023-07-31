@@ -1,5 +1,5 @@
-#pragma comment(lib, "Ws2_32.lib") // ¶Ç´Â -lws2_32 ÄÄÆÄÀÏ·¯ ¿É¼Ç Ãß°¡
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // Visual Studio IDE ¿É¼Ç Ãß°¡
+#pragma comment(lib, "Ws2_32.lib") // ë˜ëŠ” -lws2_32 ì»´íŒŒì¼ëŸ¬ ì˜µì…˜ ì¶”ê°€
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // Visual Studio IDE ì˜µì…˜ ì¶”ê°€
 
 #include <stdio.h>
 #include <winsock2.h>
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 
 	while (1)
 	{
-		printf("1. ¼­¹ö »ı¼º :: 2.¼­¹ö Á¢¼Ó :: 0.Á¾·á :: ");
+		printf("1. ì„œë²„ ìƒì„± :: 2.ì„œë²„ ì ‘ì† :: 0.ì¢…ë£Œ :: ");
 		fscanf(stdin, "%d", &select);
 		getchar();
 
@@ -33,26 +33,26 @@ int main(int argc, char* argv[])
 		case 0:
 			return 0;
 		case 1:
-			printf("»ı¼º Æ÷Æ® ¹øÈ£ : ");
+			printf("ìƒì„± í¬íŠ¸ ë²ˆí˜¸ : ");
 			break;
 		case 2:
-			printf("Á¢¼Ó Æ÷Æ® ¹øÈ£ : ");
+			printf("ì ‘ì† í¬íŠ¸ ë²ˆí˜¸ : ");
 			break;
 		default:
-			printf("Àß¸ø ÀÔ·Â ÇÏ¿´½À´Ï´Ù.\n");
+			printf("ì˜ëª» ì…ë ¥ í•˜ì˜€ìŠµë‹ˆë‹¤.\n");
 			continue;
 		}
 		fscanf(stdin, "%d", &port);
 		getchar();
 
-		// Winsock ÃÊ±âÈ­
+		// Winsock ì´ˆê¸°í™”
 		if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		{
-			printf("Winsock ÃÊ±âÈ­ ½ÇÆĞ\n");
+			printf("Winsock ì´ˆê¸°í™” ì‹¤íŒ¨\n");
 			break;
 		}
 
-		// ¼­¹ö ÁÖ¼Ò ¼³Á¤
+		// ì„œë²„ ì£¼ì†Œ ì„¤ì •
 		server_addr.sin_family = AF_INET;
 		server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 		server_addr.sin_port = htons(port);
@@ -63,37 +63,37 @@ int main(int argc, char* argv[])
 			////////////////////////////////////////////////////////////////////////////////////////////////////
 			////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 1:
-			// ¼­¹ö ¼ÒÄÏ »ı¼º
+			// ì„œë²„ ì†Œì¼“ ìƒì„±
 			if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
 			{
-				printf("¼­¹ö ¼ÒÄÏ »ı¼º ½ÇÆĞ\n");
+				printf("ì„œë²„ ì†Œì¼“ ìƒì„± ì‹¤íŒ¨\n");
 				break;
 			}
 
-			// ´ÙÁß Å¬¶óÀÌ¾ğÆ® Ã³¸® ¼³Á¤(mode = 1 // accept ºí·ÎÅ· ÇØÁ¦)
+			// ë‹¤ì¤‘ í´ë¼ì´ì–¸íŠ¸ ì²˜ë¦¬ ì„¤ì •(mode = 1 // accept ë¸”ë¡œí‚¹ í•´ì œ)
 			ioctlsocket(server_socket, FIONBIO, &mode);
 
-			// ¼ÒÄÏ°ú ÁÖ¼Ò ¹ÙÀÎµù
+			// ì†Œì¼“ê³¼ ì£¼ì†Œ ë°”ì¸ë”©
 			if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
 			{
-				printf("¹ÙÀÎµù ½ÇÆĞ\n");
+				printf("ë°”ì¸ë”© ì‹¤íŒ¨\n");
 				break;
 			}
 
-			// Å¬¶óÀÌ¾ğÆ®ÀÇ ¿¬°á ¿äÃ» ´ë±â
+			// í´ë¼ì´ì–¸íŠ¸ì˜ ì—°ê²° ìš”ì²­ ëŒ€ê¸°
 			if (listen(server_socket, 1) == SOCKET_ERROR)
 			{
-				printf("¸®½¼ ½ÇÆĞ\n");
+				printf("ë¦¬ìŠ¨ ì‹¤íŒ¨\n");
 				break;
 			}
 
 			client_len = sizeof(client_addr);
 
-			printf("¼­¹ö È°¼ºÈ­ :: Å¬¶óÀÌ¾ğÆ® Á¢¼Ó ´ë±â Áß\n");
+			printf("ì„œë²„ í™œì„±í™” :: í´ë¼ì´ì–¸íŠ¸ ì ‘ì† ëŒ€ê¸° ì¤‘\n");
 
 			while (1)
 			{
-				// Å¬¶óÀÌ¾ğÆ®ÀÇ ¿¬°á ¿äÃ»À» ¼ö¶ô
+				// í´ë¼ì´ì–¸íŠ¸ì˜ ì—°ê²° ìš”ì²­ì„ ìˆ˜ë½
 				new_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_len);
 
 				for (i = 0; i < CLIENT_MAX; i++)
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 					{
 						client_socket[i] = new_socket;
 						client_status[i] = 1;
-						printf("%s:%d Å¬¶óÀÌ¾ğÆ® %lld ¿¬°á\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket[i]);
+						printf("%s:%d í´ë¼ì´ì–¸íŠ¸ %lld ì—°ê²°\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket[i]);
 						break;
 					}
 				}
@@ -111,18 +111,18 @@ int main(int argc, char* argv[])
 				{
 					if (client_status[i] == 1)
 					{
-						// Å¬¶óÀÌ¾ğÆ®·ÎºÎÅÍ µ¥ÀÌÅÍ ¼ö½Å ¹× Ãâ·Â
+						// í´ë¼ì´ì–¸íŠ¸ë¡œë¶€í„° ë°ì´í„° ìˆ˜ì‹  ë° ì¶œë ¥
 						bytes_received = recv(client_socket[i], buffer, BUFFER_SIZE, 0);
 						if (bytes_received > 0)
 						{
 							buffer[bytes_received - 1] = '\0';
-							printf("Å¬¶óÀÌ¾ğÆ® %lld : %s\n", client_socket[i], buffer);
+							printf("í´ë¼ì´ì–¸íŠ¸ %lld : %s\n", client_socket[i], buffer);
 						}
 						if (bytes_received == 0)
 						{
 							closesocket(client_socket[i]);
 							client_status[i] = 0;
-							printf("%s:%d Å¬¶óÀÌ¾ğÆ® %lld ¿¬°á ÇØÁ¦\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket[i]);
+							printf("%s:%d í´ë¼ì´ì–¸íŠ¸ %lld ì—°ê²° í•´ì œ\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client_socket[i]);
 						}
 					}
 				}
@@ -132,36 +132,36 @@ int main(int argc, char* argv[])
 			////////////////////////////////////////////////////////////////////////////////////////////////////
 			////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 2:
-			// Å¬¶óÀÌ¾ğÆ® ¼ÒÄÏ »ı¼º
+			// í´ë¼ì´ì–¸íŠ¸ ì†Œì¼“ ìƒì„±
 			if ((client_socket[0] = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
 			{
-				printf("Å¬¶óÀÌ¾ğÆ® ¼ÒÄÏ »ı¼º ½ÇÆĞ\n");
+				printf("í´ë¼ì´ì–¸íŠ¸ ì†Œì¼“ ìƒì„± ì‹¤íŒ¨\n");
 				break;
 			}
 
-			// ¼­¹ö¿¡ ¿¬°á
+			// ì„œë²„ì— ì—°ê²°
 			if (connect(client_socket[0], (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
 			{
-				printf("¼­¹ö Á¢¼Ó ½ÇÆĞ\n");
+				printf("ì„œë²„ ì ‘ì† ì‹¤íŒ¨\n");
 				break;
 			}
 
-			printf("%s:%d ¼­¹ö Á¢¼Ó ¿Ï·á(Á¾·á : 0)\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+			printf("%s:%d ì„œë²„ ì ‘ì† ì™„ë£Œ(ì¢…ë£Œ : 0)\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
 
 			while (1)
 			{
 				printf(":: ");
 				fgets(buffer, sizeof(buffer), stdin);
 
-				// Å¬¶óÀÌ¾ğÆ® Á¾·á
+				// í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ
 				if (strstr(buffer, "0") != 0)
 					break;
 
-				// ¼­¹ö·Î µ¥ÀÌÅÍ ¼Û½Å
+				// ì„œë²„ë¡œ ë°ì´í„° ì†¡ì‹ 
 				int bytes_sent = send(client_socket[0], buffer, strlen(buffer), 0);
 				if (bytes_sent == SOCKET_ERROR)
 				{
-					printf("¼­¹ö¿ÍÀÇ Á¢¼ÓÀÌ ²÷¾îÁ³½À´Ï´Ù.\n");
+					printf("ì„œë²„ì™€ì˜ ì ‘ì†ì´ ëŠì–´ì¡ŒìŠµë‹ˆë‹¤.\n");
 					break;
 				}
 			}
@@ -171,13 +171,13 @@ int main(int argc, char* argv[])
 			////////////////////////////////////////////////////////////////////////////////////////////////////
 		}
 
-		// ¼ÒÄÏ ÇØÁ¦
+		// ì†Œì¼“ í•´ì œ
 		if (select == 1)
 			closesocket(server_socket);
 		else
 			closesocket(client_socket[0]);
 
-		// Winsock Á¤¸®
+		// Winsock ì •ë¦¬
 		WSACleanup();
 
 		continue;
